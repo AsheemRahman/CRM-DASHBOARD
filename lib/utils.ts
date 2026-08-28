@@ -34,19 +34,19 @@ export function avatarColor(seed: string): string {
 }
 
 export function isValidName(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  return /^[A-Za-z\s]{4,25}$/.test(value.trim());
 }
 
 export function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
 export function isValidPhone(value: string): boolean {
-  return /^[+]?[\d\s()-]{7,20}$/.test(value);
+  return /^(?:\+91)?\d{10}$/.test(value.trim());
 }
 
-export function isValidCOMPANY(value: string): boolean {
-  return /^[+]?[\d\s()-]{7,20}$/.test(value);
+export function isValidCompany(value: string): boolean {
+  return /^[A-Za-z0-9\s&.,'-]{4,25}$/.test(value.trim());
 }
 
 export function uid(prefix = "id"): string {
