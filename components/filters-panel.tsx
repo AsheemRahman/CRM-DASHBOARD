@@ -24,7 +24,7 @@ function CompanyMultiSelect({ companies, selected, onChange, }: { companies: str
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
+            <PopoverTrigger>
                 <button className="flex min-h-9 w-full flex-wrap items-center gap-1 rounded-sm border border-ink-600 bg-ink-800 px-2 py-1.5 text-left text-sm text-mist-100 focus:outline-none focus:ring-1 focus:ring-signal">
                     {selected.length === 0 && <span className="px-1 text-mist-500">Select companies…</span>}
                     {selected.map((c) => (
@@ -60,11 +60,7 @@ function CompanyMultiSelect({ companies, selected, onChange, }: { companies: str
     );
 }
 
-function SortableSavedFilter({
-    filter,
-    onApply,
-    onDelete,
-}: {
+function SortableSavedFilter({ filter, onApply, onDelete, }: {
     filter: SavedFilter;
     onApply: (f: SavedFilter) => void;
     onDelete: (f: SavedFilter) => void;
