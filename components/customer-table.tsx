@@ -58,6 +58,7 @@ function SortableRow({
             <td className="w-8 px-2">
                 {dragEnabled ? (
                     <button
+                        type="button"
                         className="cursor-grab touch-none rounded-xs p-1 text-mist-500 opacity-0 hover:text-mist-100 group-hover:opacity-100 active:cursor-grabbing"
                         aria-label="Drag to reorder"
                         {...attributes}
@@ -84,27 +85,41 @@ function SortableRow({
             <td className="cursor-pointer px-4 py-3 text-mist-300" onClick={() => onSelect(customer)}>
                 {customer.email}
             </td>
-            <td className="hidden cursor-pointer px-4 py-3 text-mist-300 md:table-cell" onClick={() => onSelect(customer)}>
+            <td
+                className="hidden cursor-pointer px-4 py-3 text-mist-300 md:table-cell"
+                onClick={() => onSelect(customer)}
+            >
                 {customer.phone}
             </td>
-            <td className="hidden cursor-pointer px-4 py-3 md:table-cell" onClick={() => onSelect(customer)}>
+
+            <td
+                className="hidden cursor-pointer px-4 py-3 md:table-cell"
+                onClick={() => onSelect(customer)}
+            >
                 <Badge variant={customer.status === "active" ? "active" : "inactive"}>
                     {customer.status === "active" ? "Active" : "Inactive"}
                 </Badge>
             </td>
-            <td className="cursor-pointer whitespace-nowrap px-4 py-3 text-mist-300" onClick={() => onSelect(customer)}>
+
+            <td
+                className="cursor-pointer whitespace-nowrap px-4 py-3 text-mist-300"
+                onClick={() => onSelect(customer)}
+            >
                 {formatDate(customer.lastContactDate)}
             </td>
             <td className="px-2 py-3">
                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100">
                     <button
+                        type="button"
                         className="rounded-xs p-1.5 text-mist-500 hover:bg-ink-700 hover:text-signal"
-                        aria-label={`Edit ${customer.name}`} type="button"
+                        aria-label={`Edit ${customer.name}`}
                         onClick={() => onEdit(customer)}
                     >
                         <Pencil className="h-3.5 w-3.5" />
                     </button>
+
                     <button
+                        type="button"
                         className="rounded-xs p-1.5 text-mist-500 hover:bg-ink-700 hover:text-coral"
                         aria-label={`Delete ${customer.name}`}
                         onClick={() => onDelete(customer)}
@@ -136,22 +151,52 @@ export function CustomerTable({
     onEdit: (c: Customer) => void;
     onDelete: (c: Customer) => void;
 }) {
-    const [localOrder, setLocalOrder] = React.useState<Customer[]>(customers);
-    React.useEffect(() => setLocalOrder(customers), [customers]);
+    // const [localOrder, setLocalOrder] = React.useState<Customer[]>(customers);
+    // React.useEffect(() => setLocalOrder(customers), [customers]);
+    const [orderedIds, setOrderedIds] = React.useState<string[]>([]);
+
+    const displayedCustomers = React.useMemo(() => {
+        if (orderedIds.length === 0) {
+            return customers;
+        }
+        const customerMap = new Map(
+            customers.map((customer) => [customer.id, customer])
+        );
+        const orderedIdSet = new Set(orderedIds);
+        const orderedCustomers = orderedIds
+            .map((id) => customerMap.get(id))
+            .filter((customer): customer is Customer => Boolean(customer));
+        const unorderedCustomers = customers.filter(
+            (customer) => !orderedIdSet.has(customer.id)
+        );
+        return [...orderedCustomers, ...unorderedCustomers];
+    }, [customers, orderedIds]);
 
     // Manual drag-reordering only makes sense on the current page's natural order.
     const dragEnabled = sort.field === "name" && sort.direction === "asc";
 
-    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 4,
+            },
+        })
+    );
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
-        if (!over || active.id === over.id) return;
-        const oldIndex = localOrder.findIndex((c) => c.id === active.id);
-        const newIndex = localOrder.findIndex((c) => c.id === over.id);
-        if (oldIndex === -1 || newIndex === -1) return;
-        const reordered = arrayMove(localOrder, oldIndex, newIndex);
-        setLocalOrder(reordered);
+        if (!over || active.id === over.id) {
+            return;
+        }
+        const currentIds = displayedCustomers.map(
+            (customer) => customer.id
+        );
+        const oldIndex = currentIds.indexOf(String(active.id));
+        const newIndex = currentIds.indexOf(String(over.id));
+        if (oldIndex === -1 || newIndex === -1) {
+            return;
+        }
+        setOrderedIds(arrayMove(currentIds, oldIndex, newIndex));
     }
 
     function toggleSort(field: SortField) {
@@ -162,41 +207,85 @@ export function CustomerTable({
         }
     }
 
-    return (
+    const table = (
         <div className="overflow-x-auto rounded-md border border-ink-600 bg-ink-800 shadow-panel">
             <table className="w-full min-w-180 border-collapse">
                 <thead>
                     <tr className="border-b border-ink-600 text-left text-xs uppercase tracking-wide text-mist-500">
                         <th className="w-8 px-2 py-3" aria-label="Drag handle" />
+
                         {COLUMNS.slice(0, 1).map((col) => (
-                            <th key={col.field} className="px-1 py-3 pr-4 font-medium">
-                                <button className="flex items-center gap-1.5 hover:text-mist-100" type="button" onClick={() => toggleSort(col.field)}>
+                            <th
+                                key={col.field}
+                                className="px-1 py-3 pr-4 font-medium"
+                            >
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-1.5 hover:text-mist-100"
+                                    onClick={() => toggleSort(col.field)}
+                                >
                                     {col.label}
-                                    <SortIcon active={sort.field === col.field} direction={sort.direction} />
+
+                                    <SortIcon
+                                        active={sort.field === col.field}
+                                        direction={sort.direction}
+                                    />
                                 </button>
                             </th>
                         ))}
+
                         {COLUMNS.slice(1, 2).map((col) => (
-                            <th key={col.field} className="px-4 py-3 font-medium">
-                                <button className="flex items-center gap-1.5 hover:text-mist-100" type="button" onClick={() => toggleSort(col.field)}>
+                            <th
+                                key={col.field}
+                                className="px-4 py-3 font-medium"
+                            >
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-1.5 hover:text-mist-100"
+                                    onClick={() => toggleSort(col.field)}
+                                >
                                     {col.label}
-                                    <SortIcon active={sort.field === col.field} direction={sort.direction} />
+
+                                    <SortIcon
+                                        active={sort.field === col.field}
+                                        direction={sort.direction}
+                                    />
                                 </button>
                             </th>
                         ))}
-                        <th className="hidden px-4 py-3 font-medium md:table-cell">Phone</th>
-                        <th className="hidden px-4 py-3 font-medium md:table-cell">Status</th>
+
+                        <th className="hidden px-4 py-3 font-medium md:table-cell">
+                            Phone
+                        </th>
+
+                        <th className="hidden px-4 py-3 font-medium md:table-cell">
+                            Status
+                        </th>
+
                         {COLUMNS.slice(2, 3).map((col) => (
-                            <th key={col.field} className="px-4 py-3 font-medium">
-                                <button className="flex items-center gap-1.5 hover:text-mist-100" type="button" onClick={() => toggleSort(col.field)}>
+                            <th
+                                key={col.field}
+                                className="px-4 py-3 font-medium"
+                            >
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-1.5 hover:text-mist-100"
+                                    onClick={() => toggleSort(col.field)}
+                                >
                                     {col.label}
-                                    <SortIcon active={sort.field === col.field} direction={sort.direction} />
+
+                                    <SortIcon
+                                        active={sort.field === col.field}
+                                        direction={sort.direction}
+                                    />
                                 </button>
                             </th>
                         ))}
+
                         <th className="px-2 py-3" aria-label="Actions" />
                     </tr>
                 </thead>
+
                 <tbody>
                     {isLoading &&
                         Array.from({ length: 8 }).map((_, i) => (
@@ -210,42 +299,60 @@ export function CustomerTable({
                     {!isLoading && isError && (
                         <tr>
                             <td colSpan={7} className="px-4 py-12 text-center text-sm text-coral">
-                                Couldn&rsquo;t load customers. Try refreshing.
+                                Couldn&apos;t load customers. Try refreshing.
                             </td>
                         </tr>
                     )}
 
-                    {!isLoading && !isError && localOrder.length === 0 && (
+                    {!isLoading && !isError && displayedCustomers.length === 0 && (
                         <tr>
-                            <td colSpan={7} className="px-4 py-12 text-center text-sm text-mist-500">
+                            <td
+                                colSpan={7}
+                                className="px-4 py-12 text-center text-sm text-mist-500"
+                            >
                                 No customers match your search and filters.
                             </td>
                         </tr>
                     )}
 
-                    {!isLoading && !isError && localOrder.length > 0 && (
-                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                            <SortableContext items={localOrder.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-                                {localOrder.map((customer) => (
-                                    <SortableRow
-                                        key={customer.id}
-                                        customer={customer}
-                                        onSelect={onSelect}
-                                        onEdit={onEdit}
-                                        onDelete={onDelete}
-                                        dragEnabled={dragEnabled}
-                                    />
-                                ))}
-                            </SortableContext>
-                        </DndContext>
-                    )}
+                    {!isLoading && !isError && displayedCustomers.length > 0 &&
+                        displayedCustomers.map((customer) => (
+                            <SortableRow
+                                key={customer.id}
+                                customer={customer}
+                                onSelect={onSelect}
+                                onEdit={onEdit}
+                                onDelete={onDelete}
+                                dragEnabled={dragEnabled}
+                            />
+                        ))}
                 </tbody>
             </table>
-            {!dragEnabled && !isLoading && localOrder.length > 0 && (
+            {!dragEnabled && !isLoading && displayedCustomers.length > 0 && (
                 <p className={cn("border-t border-ink-700/70 px-4 py-2 text-xs text-mist-500")}>
                     Sort by Name (ascending) to drag and manually reorder rows.
                 </p>
             )}
         </div>
     );
+
+    if (!dragEnabled) {
+        return table;
+    }
+
+    return (
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
+            <SortableContext
+                items={displayedCustomers.map((customer) => customer.id)}
+                strategy={verticalListSortingStrategy}
+            >
+                {table}
+            </SortableContext>
+        </DndContext>
+    );
 }
+
