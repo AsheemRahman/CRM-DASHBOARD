@@ -56,7 +56,7 @@ export function generateCustomers(count = 150): Customer[] {
             id: `cust_${i + 1}`,
             name,
             email: `${first.toLowerCase()}.${last.toLowerCase()}${i}@${domain}.com`,
-            phone: `+1 (${100 + Math.floor(rnd() * 800)}) ${100 + Math.floor(rnd() * 800)}-${1000 + Math.floor(rnd() * 8999)}`,
+            phone: `${6 + Math.floor(rnd() * 4)}${Math.floor(rnd() * 1000000000).toString().padStart(9, "0")}`,
             company,
             status: rnd() > 0.32 ? "active" : "inactive",
             lastContactDate,

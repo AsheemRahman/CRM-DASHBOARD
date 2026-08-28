@@ -32,8 +32,27 @@ export function Dashboard() {
     const [deletingCustomer, setDeletingCustomer] = React.useState<Customer | null>(null);
     const [addOpen, setAddOpen] = React.useState(false);
 
-    // Reset to page 1 whenever search/filters/sort/pageSize change.
-    React.useEffect(() => { setPage(1); }, [debouncedSearch, appliedFilters, sort, pageSize]);
+    const resetPage = () => setPage(1);
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        resetPage();
+    };
+
+    const handleFiltersApply = (filters: FilterState) => {
+        setAppliedFilters(filters);
+        resetPage();
+    };
+
+    const handleSortChange = (sort: SortState) => {
+        setSort(sort);
+        resetPage();
+    };
+
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        resetPage();
+    };
 
     const queryParams = React.useMemo(
         () => ({ search: debouncedSearch, filters: appliedFilters, sort, page, pageSize }),
@@ -75,7 +94,7 @@ export function Dashboard() {
                             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mist-500" />
                             <Input
                                 value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                onChange={(e) => handleSearchChange(e.target.value)}
                                 placeholder="Search customers…"
                                 className="pl-9"
                             />
@@ -111,7 +130,7 @@ export function Dashboard() {
                         isLoading={isLoading}
                         isError={isError}
                         sort={sort}
-                        onSortChange={setSort}
+                        onSortChange={handleSortChange}
                         onSelect={setSelectedCustomer}
                         onEdit={setEditingCustomer}
                         onDelete={setDeletingCustomer}
@@ -123,7 +142,7 @@ export function Dashboard() {
                             pageSize={data.pageSize}
                             total={data.total}
                             onPageChange={setPage}
-                            onPageSizeChange={setPageSize}
+                            onPageSizeChange={handlePageSizeChange}
                         />
                     )}
                     {isFetching && !isLoading && <p className="mt-2 text-xs text-mist-500">Refreshing…</p>}
@@ -135,8 +154,8 @@ export function Dashboard() {
                 onOpenChange={setFiltersOpen}
                 draft={draftFilters}
                 onDraftChange={setDraftFilters}
-                onApply={setAppliedFilters}
-                onClearAll={() => setAppliedFilters(emptyFilters)}
+                onApply={handleFiltersApply}
+                onClearAll={() => { setAppliedFilters(emptyFilters); setPage(1); }}
                 companies={companies}
                 activeCount={countActiveFilters(draftFilters)}
             />

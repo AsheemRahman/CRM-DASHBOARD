@@ -57,7 +57,7 @@ export function useReorderSavedFilters() {
             }
             return { previous };
         },
-        onError: (_err, _vars, context) => {
+        onError: (_err, _orderedIds, context) => {
             if (context?.previous) queryClient.setQueryData([KEY], context.previous);
             toast.error("Failed to reorder filters");
         },

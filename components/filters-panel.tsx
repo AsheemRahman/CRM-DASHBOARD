@@ -123,25 +123,27 @@ export function FiltersPanel({
     activeCount: number;
 }) {
     const { data: savedFilters = [] } = useSavedFilters();
+
     const saveMutation = useSaveFilter();
     const deleteMutation = useDeleteSavedFilter();
     const reorderMutation = useReorderSavedFilters();
+    
     const [saveName, setSaveName] = React.useState("");
     const [showSaveInput, setShowSaveInput] = React.useState(false);
 
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
-    const [localFilters, setLocalFilters] = React.useState(savedFilters);
-    React.useEffect(() => setLocalFilters(savedFilters), [savedFilters]);
+    // const [localFilters, setLocalFilters] = React.useState(savedFilters);
+    // React.useEffect(() => setLocalFilters(savedFilters), [savedFilters]);
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
         if (!over || active.id === over.id) return;
-        const oldIndex = localFilters.findIndex((f) => f.id === active.id);
-        const newIndex = localFilters.findIndex((f) => f.id === over.id);
+        const oldIndex = savedFilters.findIndex((filter) => filter.id === active.id);
+        const newIndex = savedFilters.findIndex((filter) => filter.id === over.id);
         if (oldIndex === -1 || newIndex === -1) return;
-        const reordered = arrayMove(localFilters, oldIndex, newIndex);
-        setLocalFilters(reordered);
-        reorderMutation.mutate(reordered.map((f) => f.id));
+        const reordered = arrayMove(savedFilters, oldIndex, newIndex);
+        // setLocalFilters(reordered);
+        reorderMutation.mutate(reordered.map((filter) => filter.id));
     }
 
     if (!open) return null;
@@ -268,12 +270,12 @@ export function FiltersPanel({
                             )}
 
                             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                                <SortableContext items={localFilters.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+                                <SortableContext items={savedFilters.map((filter) => filter.id)} strategy={verticalListSortingStrategy}>
                                     <div className="space-y-1.5">
-                                        {localFilters.map((f) => (
+                                        {savedFilters.map((filter) => (
                                             <SortableSavedFilter
-                                                key={f.id}
-                                                filter={f}
+                                                key={filter.id}
+                                                filter={filter}
                                                 onApply={(sf) => onDraftChange(sf.filters)}
                                                 onDelete={(sf) => deleteMutation.mutate(sf.id)}
                                             />
