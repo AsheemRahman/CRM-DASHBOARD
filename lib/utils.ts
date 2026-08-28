@@ -33,20 +33,12 @@ export function avatarColor(seed: string): string {
   return AVATAR_HUES[Math.abs(hash) % AVATAR_HUES.length];
 }
 
-export function isValidName(value: string): boolean {
-  return /^[A-Za-z\s]{4,25}$/.test(value.trim());
-}
-
 export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
 export function isValidPhone(value: string): boolean {
   return /^(?:\+91)?\d{10}$/.test(value.trim());
-}
-
-export function isValidCompany(value: string): boolean {
-  return /^[A-Za-z0-9\s&.,'-]{4,25}$/.test(value.trim());
 }
 
 export function uid(prefix = "id"): string {
